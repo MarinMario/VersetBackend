@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+Versuri.db
+Versuri.db-shm
+Versuri.db-wal
