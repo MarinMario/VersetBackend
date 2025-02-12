@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VersuriAPI.Data;
+using VersuriAPI.Models.Dtos;
 using VersuriAPI.Models.Entities;
 
 namespace VersuriAPI.Controllers
@@ -18,19 +21,24 @@ namespace VersuriAPI.Controllers
 
 
         [HttpGet]
-        public IActionResult getAll()
+        public async Task<IActionResult> getAllAsync([FromHeader] string idToken)
         {
-           var songs = dbContext.Songs.ToList();
-             
+            var authorized = await Utils.Authorization.Validate(idToken);
+            if (!authorized) return Unauthorized("Authorization Token is Invalid.");
+
+            var songs = dbContext.Songs.Include(s => s.User).ToList();
             return Ok(songs);
         }
 
         [HttpGet("{id}")]
-        public IActionResult get(Guid id)
+        public async Task<IActionResult> getAsync([FromHeader] string idToken, Guid id)
         {
+            var authorized = await Utils.Authorization.Validate(idToken);
+            if (!authorized) return Unauthorized("Authorization Token is Invalid.");
+
             var song = dbContext.Songs.Find(id);
 
-            if(song == null)
+            if (song == null)
             {
                 return BadRequest("Song doesn't exist");
             }
@@ -39,10 +47,28 @@ namespace VersuriAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult add(Song song)
+        public async Task<IActionResult> addAsync([FromHeader] string idToken, SongDto songDto)
         {
+            var authorized = await Utils.Authorization.Validate(idToken);
+            if (!authorized) return Unauthorized("Authorization Token is Invalid.");
+
+            var userGmail = dbContext.Users.Find(songDto.UserGmail);
+            if (userGmail == null)
+            {
+                return BadRequest("User doesn't exist.");
+            }
+
+            var song = new Song
+            {
+                Id = new Guid(),
+                Name = songDto.Name,
+                Lyrics = songDto.Lyrics,
+                User = userGmail
+            };
+
             dbContext.Songs.Add(song);
             dbContext.SaveChanges();
+
             return Ok(song);
         }
     }
