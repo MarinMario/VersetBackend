@@ -26,8 +26,8 @@ namespace VersuriAPI.Controllers
             var authorized = await Utils.Authorization.Validate(idToken);
             if (!authorized) return Unauthorized("Authorization Token is Invalid.");
 
-            var songs = dbContext.Songs.Include(s => s.User).ToList();
-            return Ok(songs);
+            //var songs = dbContext.Songs.Include(s => s.User).ToList();
+            return Ok("this worked");
         }
 
         [HttpGet("{id}")]
