@@ -19,30 +19,29 @@ namespace VersuriAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> getAllAsync([FromHeader] string idToken)
+        public IActionResult GetAll()
         {
-
-            var authorized = await Utils.Authorization.Validate(idToken);
-            if (!authorized) return Unauthorized("Authorization Token is Invalid.");
-
             var users = dbContext.Users.ToList();
             return Ok(users);
         }
 
         [HttpPost]
-        public async Task<IActionResult> addAsync([FromHeader] string idToken, [FromBody] User user)
+        public async Task<IActionResult> Add([FromHeader] string idToken)
         {
-            var authorized = await Utils.Authorization.Validate(idToken);
-            if (!authorized) return Unauthorized("Authorization Token is Invalid.");
+            var auth = await Utils.Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
 
-            var foundUser = dbContext.Users.Find(user.Gmail);
-            if (foundUser == null) {
+            var foundUser = dbContext.Users.Find(auth.Email);
+            if (foundUser != null)
                 return BadRequest("User already exists.");
-            }
 
-            dbContext.Users.Add(user);
+            var newUser = new User { CreationDate = DateTime.UtcNow, Email = auth.Email, Name = auth.Name, Public = false };
+
+            dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
-            return Ok(user);
+
+            return Ok(newUser);
         }
     }
 }

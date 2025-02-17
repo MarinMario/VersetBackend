@@ -6,6 +6,7 @@ namespace VersuriAPI.Models.Dtos
     {
         public required string Name { get; set; }
         public required string Lyrics { get; set; }
-        public required string UserGmail { get; set; }
+        public required string Description { get; set; }
+        public required TAccessFor AccessFor { get; set; }
     }
 }
