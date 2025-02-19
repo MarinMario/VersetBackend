@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VersuriAPI.Data;
-using VersuriAPI.Models.Dtos;
-using VersuriAPI.Models.Entities;
+using VersuriAPI.Models;
+using VersuriAPI.Utils;
 
 namespace VersuriAPI.Controllers
 {
@@ -19,18 +19,36 @@ namespace VersuriAPI.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet]
+        [HttpGet("GetAll")]
         public IActionResult GetAll()
         {
-            var songs = dbContext.Songs.Include(s => s.User).ToList();
+            var songs = dbContext.Songs.Include(s => s.User);
+            return Ok(songs);
+        }
+
+        [HttpGet("GetPublic")]
+        public async Task<IActionResult> GetPublic([FromHeader] string idToken)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
+
+            var songs = dbContext.Songs
+                .Include(s => s.User)
+                .Where(s => s.AccessFor == 0)
+                .Select(s => Misc.SongToPublic(dbContext, s));
+
+            if (songs == null)
+                return BadRequest("Database issue.");
+
             return Ok(songs);
         }
 
 
-        [HttpGet("user")]
+        [HttpGet("GetByUser")]
         public async Task<IActionResult> GetByUser([FromHeader] string idToken)
         {
-            var auth = await Utils.Authorization.Validate(idToken);
+            var auth = await Authorization.Validate(idToken);
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
@@ -42,30 +60,48 @@ namespace VersuriAPI.Controllers
             return Ok(songs);
         }
 
-        [HttpGet("id/{id}")]
+        [HttpGet("GetById/{id}")]
         public async Task<IActionResult> GetById([FromHeader] string idToken, Guid id)
         {
-            var auth = await Utils.Authorization.Validate(idToken);
+            var auth = await Authorization.Validate(idToken);
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
             var song = dbContext.Songs.Include(s => s.User).ToList().Find(s => s.Id == id);
             if (song == null)
                 return BadRequest("Song doesn't exist");
+
             if (song.User.Email != auth.Email)
-                return Unauthorized("You can't delete data from other users.");
+                return Unauthorized("You can't fetch private data from other users.");
 
             return Ok(song);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add([FromHeader] string idToken, SongDto songDto)
+        [HttpGet("GetByIdPublic/{id}")]
+        public async Task<IActionResult> GetByIdPublic([FromHeader] string idToken, Guid id)
         {
-            var auth = await Utils.Authorization.Validate(idToken);
+            var auth = await Authorization.Validate(idToken);
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var user = dbContext.Users.Find(auth.Email);
+            var song = dbContext.Songs.Include(s => s.User).ToList().Find(s => s.Id == id);
+            if (song == null)
+                return BadRequest("Song doesn't exist");
+
+            var songPublic = Misc.SongToPublic(dbContext, song);
+
+            return Ok(songPublic);
+        }
+
+
+        [HttpPost("Add")]
+        public async Task<IActionResult> Add([FromHeader] string idToken, DtoSongAdd songDto)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
+
+            var user = Misc.getUserByEmail(dbContext, auth.Email);
             if (user == null)
                 return BadRequest("User doesn't exist.");
 
@@ -90,15 +126,16 @@ namespace VersuriAPI.Controllers
             return Ok(song);
         }
 
-        [HttpDelete("id/{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<IActionResult> Delete([FromHeader] string idToken, Guid id)
         {
-            var auth = await Utils.Authorization.Validate(idToken);
+            var auth = await Authorization.Validate(idToken);
             if (auth == null) return Unauthorized("Authorization Token is Invalid.");
 
             var song = dbContext.Songs.Include(s => s.User).ToList().Find(s => s.Id == id);
             if (song == null)
                 return BadRequest("Song doesn't exist");
+
             if (song.User.Email != auth.Email)
                 return Unauthorized("You can't delete stuff from other users.");
 
@@ -108,18 +145,18 @@ namespace VersuriAPI.Controllers
             return Ok(song);
         }
 
-        [HttpPost("update/{songId}")]
-        public async Task<IActionResult> Update([FromHeader] string idToken, SongDto songDto, Guid songId)
+        [HttpPost("Update")]
+        public async Task<IActionResult> Update([FromHeader] string idToken, DtoSongUpdate songDto)
         {
-            var auth = await Utils.Authorization.Validate(idToken);
+            var auth = await Authorization.Validate(idToken);
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var user = dbContext.Users.Find(auth.Email);
+            var user = Misc.getUserByEmail(dbContext, auth.Email);
             if (user == null)
                 return BadRequest("User doesn't exist.");
 
-            var foundSong = dbContext.Songs.Find(songId);
+            var foundSong = dbContext.Songs.Find(songDto.Id);
 
             if (foundSong == null)
                 return BadRequest("Song doesn't exist.");
