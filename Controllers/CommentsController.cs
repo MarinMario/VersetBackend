@@ -50,6 +50,9 @@ namespace VersuriAPI.Controllers
             if (song == null)
                 return NotFound("Song doesn't exist");
 
+            if (comment.Content.Replace(" ", "").Length < 2)
+                return BadRequest("Comment must be at least 2 characters long without whitespace.");
+
             var newComment = new Comment
             {
                 Id = new Guid(),
@@ -64,6 +67,30 @@ namespace VersuriAPI.Controllers
             dbContext.SaveChanges();
 
             return Ok(Misc.CommentToPublic(newComment));
+        }
+
+        [HttpDelete("Delete/{commentId}")]
+        public async Task<IActionResult> Delete([FromHeader] string idToken, Guid commentId)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
+
+            var user = Misc.getUserByEmail(dbContext, auth.Email);
+            if (user == null)
+                return NotFound("User doesn't exist.");
+
+            var comment = dbContext.Comments.Include(c => c.User).Include(c => c.Song).Where(c => c.Id == commentId).First();
+            if (comment == null)
+                return NotFound("Comment doesn't exist.");
+
+            if (comment.User.Email != user.Email)
+                return Unauthorized("You can't delete comments from other users.");
+
+            dbContext.Comments.Remove(comment);
+            dbContext.SaveChanges();
+
+            return Ok(Misc.CommentToPublic(comment));
         }
     }
 }
