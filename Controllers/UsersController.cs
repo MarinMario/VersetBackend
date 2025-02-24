@@ -40,7 +40,19 @@ namespace VersuriAPI.Controllers
             return Ok(user);
         }
 
+        [HttpGet("GetUserPublic/{userId}")]
+        public async Task<IActionResult> GetUserData([FromHeader] string idToken, Guid userId)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
 
+            var user = dbContext.Users.Find(userId);
+            if (user == null)
+                return NotFound();
+
+            return Ok(Misc.UserToPublic(user));
+        }
 
         [HttpPost("Add")]
         public async Task<IActionResult> Add([FromHeader] string idToken)
@@ -81,15 +93,8 @@ namespace VersuriAPI.Controllers
             if (foundUser == null)
                 return BadRequest("User doesn't exist.");
 
-            if (Misc.ContainsDuplicates(user.LikedSongs))
-                return BadRequest("LikedSongs can't contain duplicates.");
-            if (Misc.ContainsDuplicates(user.DislikedSongs))
-                return BadRequest("DislikedSongs can't contain duplicates.");
-
             foundUser.Name = user.Name;
             foundUser.Public = user.Public;
-            foundUser.LikedSongs = user.LikedSongs;
-            foundUser.DislikedSongs = user.DislikedSongs;
 
             dbContext.SaveChanges();
 

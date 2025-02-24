@@ -11,8 +11,8 @@ using VersuriAPI.Data;
 namespace VersuriAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250220172907_Create")]
-    partial class Create
+    [Migration("20250224123822_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

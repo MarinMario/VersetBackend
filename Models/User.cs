@@ -18,8 +18,6 @@ namespace VersuriAPI.Models
     {
         public required string Name { get; set; }
         public required bool Public { get; set; }
-        public required List<Guid> LikedSongs { get; set; }
-        public required List<Guid> DislikedSongs { get; set; }
     }
 
     public class DtoUserPublic

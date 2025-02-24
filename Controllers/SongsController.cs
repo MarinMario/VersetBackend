@@ -52,7 +52,7 @@ namespace VersuriAPI.Controllers
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var songs = dbContext.Songs.Include(s => s.User).ToList().FindAll(s => s.User.Email == auth.Email);
+            var songs = dbContext.Songs.Include(s => s.User).Where(s => s.User.Email == auth.Email);
 
             if (songs == null)
                 return BadRequest("idk why");
@@ -91,6 +91,25 @@ namespace VersuriAPI.Controllers
             var songPublic = Misc.SongToPublic(dbContext, song);
 
             return Ok(songPublic);
+        }
+
+        [HttpGet("GetByUserId/{userId}")]
+        public async Task<IActionResult> GetByUserId([FromHeader] string idToken, Guid userId)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
+
+            var connectedUser = Misc.getUserByEmail(dbContext, auth.Email);
+
+            var songs = dbContext.Songs
+                .Include(s => s.User)
+                .Where(s => s.AccessFor == TAccessFor.Public && s.User.Id == userId);
+
+
+            var songsPublic = songs.Select(s => Misc.SongToPublic(dbContext, s));
+
+            return Ok(songsPublic);
         }
 
 
