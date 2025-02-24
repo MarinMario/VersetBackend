@@ -20,11 +20,8 @@ namespace VersuriAPI.Utils
 
         public static User? getUserByEmail(AppDbContext dbContext, string email)
         {
-            var foundUserArray = dbContext.Users.Where(u => u.Email == email).ToArray();
-            if (foundUserArray.Length > 0)
-                return foundUserArray[0];
-
-            return null;
+            var foundUser = dbContext.Users.Where(u => u.Email == email).First();
+            return foundUser;
         }
 
         public static void ToggleFromList<T>(List<T> list, T element)

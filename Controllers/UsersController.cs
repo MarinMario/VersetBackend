@@ -19,12 +19,12 @@ namespace VersuriAPI.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet("GetAll")]
-        public IActionResult GetAll()
-        {
-            var users = dbContext.Users.ToList();
-            return Ok(users);
-        }
+        //[HttpGet("GetAll")]
+        //public IActionResult GetAll()
+        //{
+        //    var users = dbContext.Users.ToList();
+        //    return Ok(users);
+        //}
 
         [HttpGet("GetUserData")]
         public async Task<IActionResult> GetUserData([FromHeader] string idToken)

@@ -19,12 +19,12 @@ namespace VersuriAPI.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet("GetAll")]
-        public IActionResult GetAll()
-        {
-            var songs = dbContext.Songs.Include(s => s.User);
-            return Ok(songs);
-        }
+        //[HttpGet("GetAll")]
+        //public IActionResult GetAll()
+        //{
+        //    var songs = dbContext.Songs.Include(s => s.User);
+        //    return Ok(songs);
+        //}
 
         [HttpGet("GetPublic")]
         public async Task<IActionResult> GetPublic([FromHeader] string idToken)
