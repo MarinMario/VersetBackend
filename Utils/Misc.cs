@@ -84,5 +84,18 @@ namespace VersuriAPI.Utils
 
             return commentPublic;
         }
+
+        public static DtoFollowPublic FollowToPublic(Follow follow)
+        {
+
+            var followPublic = new DtoFollowPublic
+            {
+                FollowsId = follow.FollowsId,
+                User = UserToPublic(follow.User),
+                Id = follow.Id,
+            };
+
+            return followPublic;
+        }
     }
 }

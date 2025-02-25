@@ -11,8 +11,8 @@ using VersuriAPI.Data;
 namespace VersuriAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250224123822_init")]
-    partial class init
+    [Migration("20250225132805_Create")]
+    partial class Create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,6 +49,22 @@ namespace VersuriAPI.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("VersuriAPI.Models.Follow", b =>
+                {
+                    b.Property<Guid>("FollowsId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("FollowsId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Follow");
                 });
 
             modelBuilder.Entity("VersuriAPI.Models.Song", b =>
@@ -136,6 +152,17 @@ namespace VersuriAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Song");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("VersuriAPI.Models.Follow", b =>
+                {
+                    b.HasOne("VersuriAPI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

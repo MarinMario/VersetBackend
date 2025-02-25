@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VersuriAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Create : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +26,24 @@ namespace VersuriAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Follow",
+                columns: table => new
+                {
+                    FollowsId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Follow", x => x.FollowsId);
+                    table.ForeignKey(
+                        name: "FK_Follow_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -91,6 +109,11 @@ namespace VersuriAPI.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Follow_UserId",
+                table: "Follow",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Songs_UserId",
                 table: "Songs",
                 column: "UserId");
@@ -101,6 +124,9 @@ namespace VersuriAPI.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Comments");
+
+            migrationBuilder.DropTable(
+                name: "Follow");
 
             migrationBuilder.DropTable(
                 name: "Songs");
