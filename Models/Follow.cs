@@ -16,6 +16,7 @@ namespace VersuriAPI.Models
         public required Guid Id { get; set; }
         public required Guid FollowsId { get; set; }
         public required User User { get; set; }
+        public required FollowStatusType FollowStatus { get; set; }
     }
 
     public class DtoFollowPublic
@@ -23,6 +24,7 @@ namespace VersuriAPI.Models
         public required Guid Id { get; set; }
         public required Guid FollowsId { get; set; }
         public required DtoUserPublic User { get; set; }
+        public required FollowStatusType FollowStatus { get; set; }
     }
 
     public class DtoFollowStatus

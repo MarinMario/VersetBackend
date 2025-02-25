@@ -54,6 +54,9 @@ namespace VersuriAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("FollowStatus")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("FollowsId")
                         .HasColumnType("TEXT");
 
@@ -64,7 +67,7 @@ namespace VersuriAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Follow");
+                    b.ToTable("Follows");
                 });
 
             modelBuilder.Entity("VersuriAPI.Models.Song", b =>

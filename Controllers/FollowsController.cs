@@ -18,8 +18,8 @@ namespace VersuriAPI.Controllers
             this.dbContext = dbContext;
         }
 
-        [HttpGet("GetFollows")]
-        public async Task<IActionResult> GetFollows([FromHeader] string idToken)
+        [HttpGet("GetFollowing")]
+        public async Task<IActionResult> GetFollowing([FromHeader] string idToken)
         {
             var auth = await Authorization.Validate(idToken);
             if (auth == null)
@@ -50,30 +50,19 @@ namespace VersuriAPI.Controllers
 
             var followStatus = new DtoFollowStatus { FollowStatus = FollowStatusType.None };
 
-            var followRequest = dbContext.FollowRequests
-                .Include(f => f.User)
-                .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
-                .FirstOrDefault();
-
-            if (followRequest != null)
-            {
-                followStatus.FollowStatus = FollowStatusType.Requested;
-                return Ok(followStatus);
-            }
-
             var follow = dbContext.Follows
                 .Include(f => f.User)
                 .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
                 .FirstOrDefault();
 
             if (follow != null)
-                followStatus.FollowStatus = FollowStatusType.Following;
+                followStatus.FollowStatus = follow.FollowStatus;
 
             return Ok(followStatus);
         }
 
 
-        [HttpGet("GetFollowRequests")]
+        [HttpGet("GetFollowers")]
         public async Task<IActionResult> GetFollowRequests([FromHeader] string idToken)
         {
             var auth = await Authorization.Validate(idToken);
@@ -84,11 +73,12 @@ namespace VersuriAPI.Controllers
             if (currentUser == null)
                 return NotFound("Connected User doesn't exist.");
 
-            var followRequests = dbContext.FollowRequests
+            var follows = dbContext.Follows
+                .Include(f => f.User)
                 .Where(f => f.FollowsId == currentUser.Id)
-                .Select(f => f.FollowsId);
+                .Select(f => Misc.FollowToPublic(f));
 
-            return Ok(followRequests);
+            return Ok(follows);
         }
 
 
@@ -113,23 +103,23 @@ namespace VersuriAPI.Controllers
                 Id = new Guid(),
                 FollowsId = wantsToFollowId,
                 User = currentUser,
+                FollowStatus = FollowStatusType.None
             };
 
-            var followStatus = new DtoFollowStatus { FollowStatus = FollowStatusType.None };
 
             if (wantsToFollow.Public)
             {
-                dbContext.Follows.Add(newFollow);
-                followStatus.FollowStatus = FollowStatusType.Following;
+                newFollow.FollowStatus = FollowStatusType.Following;
             }
             else
             {
-                dbContext.FollowRequests.Add(newFollow);
-                followStatus.FollowStatus = FollowStatusType.Requested;
+                newFollow.FollowStatus = FollowStatusType.Requested;
             }
 
+            dbContext.Follows.Add(newFollow);
+
             dbContext.SaveChanges();
-            return Ok(followStatus);
+            return Ok(new DtoFollowStatus { FollowStatus = newFollow.FollowStatus });
         }
 
         [HttpPost("AcceptFollowRequest/{userId}")]
@@ -144,42 +134,16 @@ namespace VersuriAPI.Controllers
             if (currentUser == null)
                 return NotFound("Connected User doesn't exist.");
 
-            var followRequest = dbContext.FollowRequests
+            var followRequest = dbContext.Follows
                 .Include(f => f.User)
-                .Where(f => f.FollowsId == userId && f.User.Id == currentUser.Id)
+                .Where(f => f.FollowsId == currentUser.Id && f.User.Id == userId)
+                .Where(f => f.FollowStatus == FollowStatusType.Requested)
                 .FirstOrDefault();
 
             if (followRequest == null)
                 return NotFound("Follow request doesn't exist.");
 
-            dbContext.Follows.Add(followRequest);
-            dbContext.FollowRequests.Remove(followRequest);
-            dbContext.SaveChanges();
-
-            return Ok();
-        }
-
-        [HttpDelete("DeleteFollowRequest/{userId}")]
-        public async Task<IActionResult> DeleteFollowRequest([FromHeader] string idToken, Guid userId)
-        {
-            var auth = await Authorization.Validate(idToken);
-            if (auth == null)
-                return Unauthorized("Authorization Token is Invalid.");
-
-            var currentUser = Misc.getUserByEmail(dbContext, auth.Email);
-
-            if (currentUser == null)
-                return NotFound("Connected User doesn't exist.");
-
-            var followRequest = dbContext.FollowRequests
-                .Include(f => f.User)
-                .Where(f => f.FollowsId == userId && f.User.Id == currentUser.Id)
-                .FirstOrDefault();
-
-            if (followRequest == null)
-                return NotFound("Follow request doesn't exist.");
-
-            dbContext.FollowRequests.Remove(followRequest);
+            followRequest.FollowStatus = FollowStatusType.Following;
             dbContext.SaveChanges();
 
             return Ok();
