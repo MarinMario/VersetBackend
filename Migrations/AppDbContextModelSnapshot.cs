@@ -50,14 +50,17 @@ namespace VersuriAPI.Migrations
 
             modelBuilder.Entity("VersuriAPI.Models.Follow", b =>
                 {
-                    b.Property<Guid>("FollowsId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("FollowsId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("FollowsId");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId");
 

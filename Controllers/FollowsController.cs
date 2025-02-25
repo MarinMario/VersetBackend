@@ -53,7 +53,7 @@ namespace VersuriAPI.Controllers
             var followRequest = dbContext.FollowRequests
                 .Include(f => f.User)
                 .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
-                .First();
+                .FirstOrDefault();
 
             if (followRequest != null)
             {
@@ -64,7 +64,7 @@ namespace VersuriAPI.Controllers
             var follow = dbContext.Follows
                 .Include(f => f.User)
                 .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
-                .First();
+                .FirstOrDefault();
 
             if (follow != null)
                 followStatus.FollowStatus = FollowStatusType.Following;
@@ -147,7 +147,7 @@ namespace VersuriAPI.Controllers
             var followRequest = dbContext.FollowRequests
                 .Include(f => f.User)
                 .Where(f => f.FollowsId == userId && f.User.Id == currentUser.Id)
-                .First();
+                .FirstOrDefault();
 
             if (followRequest == null)
                 return NotFound("Follow request doesn't exist.");
@@ -174,7 +174,7 @@ namespace VersuriAPI.Controllers
             var followRequest = dbContext.FollowRequests
                 .Include(f => f.User)
                 .Where(f => f.FollowsId == userId && f.User.Id == currentUser.Id)
-                .First();
+                .FirstOrDefault();
 
             if (followRequest == null)
                 return NotFound("Follow request doesn't exist.");
@@ -184,6 +184,33 @@ namespace VersuriAPI.Controllers
 
             return Ok();
         }
+
+        [HttpDelete("Unfollow/{userId}")]
+        public async Task<IActionResult> Unfollow([FromHeader] string idToken, Guid userId)
+        {
+            var auth = await Authorization.Validate(idToken);
+            if (auth == null)
+                return Unauthorized("Authorization Token is Invalid.");
+
+            var currentUser = Misc.getUserByEmail(dbContext, auth.Email);
+
+            if (currentUser == null)
+                return NotFound("Connected User doesn't exist.");
+
+            var follow = dbContext.Follows
+                .Include(f => f.User)
+                .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
+                .FirstOrDefault();
+
+            if (follow == null)
+                return NotFound("You are not following that user.");
+
+            dbContext.Follows.Remove(follow);
+            dbContext.SaveChanges();
+
+            return Ok();
+        }
+
 
         [HttpDelete("DeleteFollower/{followerId}")]
         public async Task<IActionResult> DeleteFollower([FromHeader] string idToken, Guid followerId)
@@ -200,7 +227,7 @@ namespace VersuriAPI.Controllers
             var follower = dbContext.Follows
                 .Include(f => f.User)
                 .Where(f => f.FollowsId == currentUser.Id && f.User.Id == followerId)
-                .First(); ;
+                .FirstOrDefault();
 
             if (follower == null)
                 return NotFound("Follower doesn't exist.");

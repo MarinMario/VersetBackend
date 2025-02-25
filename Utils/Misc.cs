@@ -20,7 +20,7 @@ namespace VersuriAPI.Utils
 
         public static User? getUserByEmail(AppDbContext dbContext, string email)
         {
-            var foundUser = dbContext.Users.Where(u => u.Email == email).First();
+            var foundUser = dbContext.Users.Where(u => u.Email == email).FirstOrDefault();
             return foundUser;
         }
 
