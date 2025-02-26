@@ -36,6 +36,18 @@ namespace VersuriAPI.Utils
             }
         }
 
+        public static bool IsFollowing(AppDbContext dbContext, Guid user1Id, Guid user2Id)
+        {
+            var followsUser2 = dbContext.Follows
+                .Include(f => f.User)
+                .Where(f => f.FollowStatus == FollowStatusType.Following)
+                .Where(f => f.User.Id == user1Id)
+                .Where(f => f.FollowsId == user2Id)
+                .FirstOrDefault();
+
+            return followsUser2 != null;
+        }
+
         public static DtoUserPublic UserToPublic(User user)
         {
             var userPublic = new DtoUserPublic

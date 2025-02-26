@@ -35,7 +35,7 @@ namespace VersuriAPI.Controllers
 
             var songs = dbContext.Songs
                 .Include(s => s.User)
-                .Where(s => s.AccessFor == 0)
+                .Where(s => s.AccessFor == TAccessFor.Public)
                 .Select(s => Misc.SongToPublic(dbContext, s));
 
             if (songs == null)
@@ -54,9 +54,6 @@ namespace VersuriAPI.Controllers
 
             var songs = dbContext.Songs.Include(s => s.User).Where(s => s.User.Email == auth.Email);
 
-            if (songs == null)
-                return BadRequest("idk why");
-
             return Ok(songs);
         }
 
@@ -67,7 +64,7 @@ namespace VersuriAPI.Controllers
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var song = dbContext.Songs.Include(s => s.User).ToList().Find(s => s.Id == id);
+            var song = dbContext.Songs.Include(s => s.User).Where(s => s.Id == id).FirstOrDefault();
             if (song == null)
                 return BadRequest("Song doesn't exist");
 
@@ -84,13 +81,29 @@ namespace VersuriAPI.Controllers
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var song = dbContext.Songs.Include(s => s.User).Where(s => s.Id == id).FirstOrDefault();
-            if (song == null)
-                return BadRequest("Song doesn't exist");
+            var connectedUser = Misc.getUserByEmail(dbContext, auth.Email);
+            if(connectedUser == null)
+                return NotFound("Connected user doesn't exist.");
 
+
+            var song = dbContext.Songs
+                .Include(s => s.User)
+                .FirstOrDefault(s => s.Id == id);
+
+            if (song == null)
+                return BadRequest("Song doesn't exist.");
+            
             var songPublic = Misc.SongToPublic(dbContext, song);
 
-            return Ok(songPublic);
+            if(song.AccessFor == TAccessFor.Public)
+                return Ok(songPublic);
+
+            var isFollower = Misc.IsFollowing(dbContext, connectedUser.Id, song.User.Id);
+
+            if (song.AccessFor == TAccessFor.Followers && isFollower)
+                return Ok(songPublic);
+
+            return Unauthorized("You don't have access to this song because it's private or because you are not a follower.");
         }
 
         [HttpGet("GetByUserId/{userId}")]
@@ -104,17 +117,12 @@ namespace VersuriAPI.Controllers
             if (connectedUser == null)
                 return NotFound("Connected user doesn't exist.");
 
-            var followsUser = dbContext.Follows
-                .Where(f => f.FollowStatus == FollowStatusType.Following)
-                .Where(f => f.FollowsId == userId)
-                .Where(f => f.User.Id == connectedUser.Id)
-                .FirstOrDefault();
+            var isFollowingUser = Misc.IsFollowing(dbContext, connectedUser.Id, userId);
 
             var songs = dbContext.Songs
                 .Include(s => s.User)
                 .Where(s => s.User.Id == userId)
-                .Where(s => s.AccessFor == TAccessFor.Public || (s.AccessFor == TAccessFor.Followers && followsUser != null));
-
+                .Where(s => s.AccessFor == TAccessFor.Public || (s.AccessFor == TAccessFor.Followers && isFollowingUser));
 
             var songsPublic = songs.Select(s => Misc.SongToPublic(dbContext, s));
 
