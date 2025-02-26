@@ -84,7 +84,7 @@ namespace VersuriAPI.Controllers
             if (auth == null)
                 return Unauthorized("Authorization Token is Invalid.");
 
-            var song = dbContext.Songs.Include(s => s.User).ToList().Find(s => s.Id == id);
+            var song = dbContext.Songs.Include(s => s.User).Where(s => s.Id == id).FirstOrDefault();
             if (song == null)
                 return BadRequest("Song doesn't exist");
 
@@ -101,10 +101,19 @@ namespace VersuriAPI.Controllers
                 return Unauthorized("Authorization Token is Invalid.");
 
             var connectedUser = Misc.getUserByEmail(dbContext, auth.Email);
+            if (connectedUser == null)
+                return NotFound("Connected user doesn't exist.");
+
+            var followsUser = dbContext.Follows
+                .Where(f => f.FollowStatus == FollowStatusType.Following)
+                .Where(f => f.FollowsId == userId)
+                .Where(f => f.User.Id == connectedUser.Id)
+                .FirstOrDefault();
 
             var songs = dbContext.Songs
                 .Include(s => s.User)
-                .Where(s => s.AccessFor == TAccessFor.Public && s.User.Id == userId);
+                .Where(s => s.User.Id == userId)
+                .Where(s => s.AccessFor == TAccessFor.Public || (s.AccessFor == TAccessFor.Followers && followsUser != null));
 
 
             var songsPublic = songs.Select(s => Misc.SongToPublic(dbContext, s));
