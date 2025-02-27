@@ -32,7 +32,7 @@ namespace VersuriAPI.Controllers
             var follows = dbContext.Follows
                 .Include(f => f.User)
                 .Where(f => f.User.Id == currentUser.Id)
-                .Select(f => f.FollowsId);
+                .Select(f => f.Follows.Id);
 
             return Ok(follows);
         }
@@ -51,8 +51,8 @@ namespace VersuriAPI.Controllers
             var followStatus = new DtoFollowStatus { FollowStatus = FollowStatusType.None };
 
             var follow = dbContext.Follows
-                .Include(f => f.User)
-                .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
+                .Include(f => f.User).Include(f => f.Follows)
+                .Where(f => f.User.Id == currentUser.Id && f.Follows.Id == userId)
                 .FirstOrDefault();
 
             if (follow != null)
@@ -74,8 +74,8 @@ namespace VersuriAPI.Controllers
                 return NotFound("Connected User doesn't exist.");
 
             var follows = dbContext.Follows
-                .Include(f => f.User)
-                .Where(f => f.FollowsId == currentUser.Id)
+                .Include(f => f.User).Include(f => f.Follows)
+                .Where(f => f.Follows.Id == currentUser.Id)
                 .Select(f => Misc.FollowToPublic(f));
 
             return Ok(follows);
@@ -101,7 +101,7 @@ namespace VersuriAPI.Controllers
             var newFollow = new Follow
             {
                 Id = new Guid(),
-                FollowsId = wantsToFollowId,
+                Follows = wantsToFollow,
                 User = currentUser,
                 FollowStatus = FollowStatusType.None
             };
@@ -135,8 +135,8 @@ namespace VersuriAPI.Controllers
                 return NotFound("Connected User doesn't exist.");
 
             var followRequest = dbContext.Follows
-                .Include(f => f.User)
-                .Where(f => f.FollowsId == currentUser.Id && f.User.Id == userId)
+                .Include(f => f.User).Include(f => f.Follows)
+                .Where(f => f.Follows.Id == currentUser.Id && f.User.Id == userId)
                 .Where(f => f.FollowStatus == FollowStatusType.Requested)
                 .FirstOrDefault();
 
@@ -162,8 +162,8 @@ namespace VersuriAPI.Controllers
                 return NotFound("Connected User doesn't exist.");
 
             var follow = dbContext.Follows
-                .Include(f => f.User)
-                .Where(f => f.User.Id == currentUser.Id && f.FollowsId == userId)
+                .Include(f => f.User).Include(f => f.Follows)
+                .Where(f => f.User.Id == currentUser.Id && f.Follows.Id == userId)
                 .FirstOrDefault();
 
             if (follow == null)
@@ -189,8 +189,8 @@ namespace VersuriAPI.Controllers
                 return NotFound("Connected User doesn't exist.");
 
             var follower = dbContext.Follows
-                .Include(f => f.User)
-                .Where(f => f.FollowsId == currentUser.Id && f.User.Id == followerId)
+                .Include(f => f.User).Include(f => f.Follows)
+                .Where(f => f.Follows.Id == currentUser.Id && f.User.Id == followerId)
                 .FirstOrDefault();
 
             if (follower == null)

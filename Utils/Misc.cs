@@ -39,10 +39,10 @@ namespace VersuriAPI.Utils
         public static bool IsFollowing(AppDbContext dbContext, Guid user1Id, Guid user2Id)
         {
             var followsUser2 = dbContext.Follows
-                .Include(f => f.User)
+                .Include(f => f.User).Include(f => f.Follows)
                 .Where(f => f.FollowStatus == FollowStatusType.Following)
                 .Where(f => f.User.Id == user1Id)
-                .Where(f => f.FollowsId == user2Id)
+                .Where(f => f.Follows.Id == user2Id)
                 .FirstOrDefault();
 
             return followsUser2 != null;
@@ -102,7 +102,7 @@ namespace VersuriAPI.Utils
 
             var followPublic = new DtoFollowPublic
             {
-                FollowsId = follow.FollowsId,
+                Follows = UserToPublic(follow.Follows),
                 User = UserToPublic(follow.User),
                 Id = follow.Id,
                 FollowStatus = follow.FollowStatus,

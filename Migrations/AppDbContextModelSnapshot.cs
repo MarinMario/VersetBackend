@@ -65,6 +65,8 @@ namespace VersuriAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FollowsId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Follows");
@@ -161,11 +163,19 @@ namespace VersuriAPI.Migrations
 
             modelBuilder.Entity("VersuriAPI.Models.Follow", b =>
                 {
+                    b.HasOne("VersuriAPI.Models.User", "Follows")
+                        .WithMany()
+                        .HasForeignKey("FollowsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VersuriAPI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Follows");
 
                     b.Navigation("User");
                 });
