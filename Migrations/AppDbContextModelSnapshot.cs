@@ -54,6 +54,9 @@ namespace VersuriAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("FollowStatus")
                         .HasColumnType("INTEGER");
 

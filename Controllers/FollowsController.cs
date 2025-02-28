@@ -103,7 +103,8 @@ namespace VersuriAPI.Controllers
                 Id = new Guid(),
                 Follows = wantsToFollow,
                 User = currentUser,
-                FollowStatus = FollowStatusType.None
+                FollowStatus = FollowStatusType.None,
+                Date = DateTime.UtcNow,
             };
 
 
@@ -144,6 +145,7 @@ namespace VersuriAPI.Controllers
                 return NotFound("Follow request doesn't exist.");
 
             followRequest.FollowStatus = FollowStatusType.Following;
+            followRequest.Date = DateTime.UtcNow;
             dbContext.SaveChanges();
 
             return Ok();

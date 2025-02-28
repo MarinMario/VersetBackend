@@ -106,6 +106,7 @@ namespace VersuriAPI.Utils
                 User = UserToPublic(follow.User),
                 Id = follow.Id,
                 FollowStatus = follow.FollowStatus,
+                Date = follow.Date,
             };
 
             return followPublic;
