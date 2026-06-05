@@ -30,9 +30,9 @@ namespace VersuriAPI.Controllers
                 return NotFound("Connected User doesn't exist.");
 
             var follows = dbContext.Follows
-                .Include(f => f.User)
+                .Include(f => f.User).Include(f => f.Follows)
                 .Where(f => f.User.Id == currentUser.Id)
-                .Select(f => f.Follows.Id);
+                .Select(f => Misc.FollowToPublic(f));
 
             return Ok(follows);
         }
