@@ -1,3 +1,37 @@
+# Setup
+
+**Things to install**
+- Visual Studio
+- Git
+- NPM
+- ASP.net and web development (from Visual Studio installer)
+
+**Backend Setup**
+1. Clone repository
+    - `git clone https://github.com/MarinMario/VersetBackend.git`
+2. Initialize database
+    - `dotnet ef migrations add InitialCreate`
+    - `dotnet ef database update`
+3. Run the app in http mode
+
+**Frontend setup**
+1. Clone repository
+    - `git clone https://github.com/MarinMario/VersetFrontend.git`
+
+2. Install dependencies
+    - `cd VersetFrontend`
+    - `npm install`
+
+3. Add environment file `.env.development` in the root directory
+    ```python
+    VITE_API_URL="http://localhost:5074/api"
+    VITE_CLIENT_ID="client id from google console"
+    VITE_CLIENT_SECRET="client secret from google console"
+    ```
+
+4. Run the app
+    - `npm run dev`
+
 # RESPONSE DTOs
 This section contains all the object types that can be returned or given in a request body.
 
@@ -103,7 +137,6 @@ This section contains all the API endpoints with descriptions, bodies, parameter
 
 **GET Users/GetUserData**
 - DESCRIPTION: Returns the data for the connected user.
-- QUERY PARAMETERS: No parameters, it knows what user to return based on the idToken.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Not found.
