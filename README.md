@@ -1,5 +1,4 @@
 # RESPONSE DTOs
-
 This section contains all the object types that can be returned or given in a request body.
 
 ```typescript
@@ -84,9 +83,9 @@ DtoFollowStatus {
 
 DtoFollowPublic {
   followStatus: 0 | 1 | 2
-  followId: string
   id: string
   user: DtoUserPublic
+  follows: DtoUserPublic
   date: string
 }
 ```
@@ -223,7 +222,14 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 200: DtoFollowStatus
 
 **GET Follows/GetFollowers**
-- DESCRIPTION: returns the list of followers for the connected user.
+- DESCRIPTION: Returns the list of followers for the connected user.
+- RESPONSES:
+  - 401: Authorization Token is Invalid.
+  - 404: Connected User doesn't exist.
+  - 200: DtoFollowPublic[]
+
+**GET Follows/GetFollowing**
+- DESCRIPTION: Returns the list of users that the connected user follows.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Connected User doesn't exist.
