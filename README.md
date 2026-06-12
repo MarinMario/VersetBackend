@@ -40,22 +40,22 @@ DtoUser {
   id: string,
   email: string,
   name: string,
-  : boolean,
+  public: boolean,
   creationDate: string,
   likedSongs: string[],
   dislikedSongs: string[]
 }
 
-DtoUser {
+DtoUserPublic {
   id: string,
   name: string,
   creationDate: string,
-  : boolean,
+  public: boolean,
 }
 
 DtoUserUpdate {
   name: string,
-  : boolean,
+  public: boolean,
 }
 
 DtoSong {
@@ -84,7 +84,7 @@ DtoSongUpdate {
   accessFor: number
 }
 
-DtoSong {
+DtoSongPublic {
   id: string,
   name: string,
   lyrics: string,
@@ -94,7 +94,7 @@ DtoSong {
   likes: number,
   dislikes: number,
   comments: number,
-  user: DtoUser
+  user: DtoUserPublic
 }
 
 DtoCommentAdd {
@@ -102,12 +102,12 @@ DtoCommentAdd {
   songId: string
 }
 
-DtoComment {
+DtoCommentPublic {
   id: string,
   content: string,
   creationDate: string,
   edited: boolean,
-  user: DtoUser,
+  user: DtoUserPublic,
   songId: string
 }
 
@@ -115,11 +115,11 @@ DtoFollowStatus {
   followStatus: 0 | 1 | 2 //(0 = Not following, 1 = Requested to follow, 2 = Following)
 }
 
-DtoFollow {
+DtoFollowPublic {
   followStatus: 0 | 1 | 2
   id: string
-  user: DtoUser
-  follows: DtoUser
+  user: DtoUserPublic
+  follows: DtoUserPublic
   date: string
 }
 ```
@@ -143,7 +143,7 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 200: DtoUser
 
 **POST Users/Update**
-- DESCRIPTION: Updates connected user data (currently name and  visibility)
+- DESCRIPTION: Updates connected user data (currently name and public visibility)
 - BODY: DtoUserUpdate
 - RESPONSES:
   - 401: Authorization Token is Invalid.
@@ -159,12 +159,12 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 404: User doesn't exist.
   - 200: DtoUser
 
-**GET Users/GetUser/{userId}**
+**GET Users/GetUserPublic/{userId}**
 - DESCRIPTION:
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Not found.
-  - 200: DtoUser
+  - 200: DtoUserPublic
 
 **GET Songs/GetByUser**
 - DESCRIPTION: Returns the list of projects/songs for the connected user.
@@ -172,14 +172,14 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 401: Authorization Token is Invalid.
   - 200: DtoSong[]
 
-**GET Songs/GetById/{id}**
+**GET Songs/GetByIdPublic/{id}**
 - DESCRIPTION: Returns the song/project for a given id.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Connected user doesn't exist.
   - 400: Song doesn't exist.
   - 401: You don't have access to this song because it's private or because you are not a follower.
-  - 200: DtoSong
+  - 200: DtoSongPublic
 
 **POST Songs/Add**
 - DESCRIPTION: Creates a new song/project for the connected user.
@@ -207,19 +207,19 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 400: You can't edit data from other users.
   - 200: DtoSong
 
-**GET Songs/Get**
-- DESCRIPTION: Returns the list of  songs.
+**GET Songs/GetPublic**
+- DESCRIPTION: Returns the list of public songs.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 400: Database issue.
-  - 200: DtoSong[]
+  - 200: DtoSongPublic[]
 
 **GET Songs/GetByUserId/{userId}**
-- DESCRIPTION: Returns the list of  songs and songs the connected user has access to (if they are a follower of the given user)
+- DESCRIPTION: Returns the list of public songs and songs the connected user has access to (if they are a follower of the given user)
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Connected user doesn't exist.
-  - 200: DtoSong[]
+  - 200: DtoSongPublic[]
 
 **POST Comments/Add**
 - DESCRIPTION: Adds a new comment to a post.
@@ -229,14 +229,14 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 404: User doesn't exist.
   - 404: Song doesn't exist.
   - 400: Comment must be at least 2 characters long without whitespace.
-  - 200: DtoComment
+  - 200: DtoCommentPublic
 
 **GET Comments/GetBySongId/{songId}**
 - DESCRIPTION: Returns the list of comments for a given song/post.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: User doesn't exist.
-  - 200: DtoComment[]
+  - 200: DtoCommentPublic[]
 
 **DELETE Comments/Delete/{commentId}**
 - DESCRIPTION: Deletes a comment by commentId.
@@ -245,7 +245,7 @@ This section contains all the API endpoints with descriptions, bodies, parameter
   - 404: User doesn't exist.
   - 404: Comment doesn't exist.
   - 401: You can't delete comments from other users.
-  - 200: DtoComment
+  - 200: DtoCommentPublic
 
 **GET Follows/GetFollowStatus/{userId}**
 - DESCRIPTION: Returns the follow status of the connected user who accesses the profile of a given user (0 = Not following, 1 = Requested to follow, 2 = Following)
@@ -259,14 +259,14 @@ This section contains all the API endpoints with descriptions, bodies, parameter
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Connected User doesn't exist.
-  - 200: DtoFollow[]
+  - 200: DtoFollowPublic[]
 
 **GET Follows/GetFollowing**
 - DESCRIPTION: Returns the list of users that the connected user follows.
 - RESPONSES:
   - 401: Authorization Token is Invalid.
   - 404: Connected User doesn't exist.
-  - 200: DtoFollow[]
+  - 200: DtoFollowPublic[]
 
 **POST Follows/AddFollowRequest/{userId}**
 - DESCRIPTION: Sends a follow request to a given user.
